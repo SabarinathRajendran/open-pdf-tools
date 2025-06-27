@@ -1,15 +1,15 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Crop, Download, FileText, Scissors, ChevronLeft, ChevronRight } from 'lucide-react';
+import Logo from './assets/logo.svg';
 
 const PDFCropper = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfDocument, setPdfDocument] = useState(null);
-  const [pdfPages, setPdfPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [cropArea, setCropArea] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
+  const [isDragging] = useState(false);
+  const [isResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [pageSelection, setPageSelection] = useState('current');
@@ -17,13 +17,16 @@ const PDFCropper = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [originalImageData, setOriginalImageData] = useState(null);
+  const [pageViewports, setPageViewports] = useState({});
+  const [renderScale] = useState(1.5); // Keep scale consistent
+  const [mode, setMode] = useState(null);
+
+  
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
-  
-  const [pageViewports, setPageViewports] = useState({}); 
 
-   // Load PDF.js and PDF-lib
+  // Load PDF.js and PDF-lib
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
@@ -39,8 +42,8 @@ const PDFCropper = () => {
     document.head.appendChild(pdfLibScript);
     
     return () => {
-      document.head.removeChild(script);
-      document.head.removeChild(pdfLibScript);
+      if (document.head.contains(script)) document.head.removeChild(script);
+      if (document.head.contains(pdfLibScript)) document.head.removeChild(pdfLibScript);
     };
   }, []);
 
@@ -61,7 +64,11 @@ const PDFCropper = () => {
 
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
-      
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        loadPage(pdf, i);
+      }
+
       setPdfDocument(pdf);
       setTotalPages(pdf.numPages);
       setCurrentPage(0);
@@ -85,7 +92,7 @@ const PDFCropper = () => {
     
     try {
       const page = await pdf.getPage(pageNumber);
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: renderScale });
       
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
@@ -93,7 +100,12 @@ const PDFCropper = () => {
       // Store viewport info for later use in cropping
       setPageViewports(prev => ({
         ...prev,
-        [pageNumber]: viewport
+        [pageNumber]: {
+          ...viewport,
+          originalWidth: viewport.width / renderScale,  // Store original dimensions
+          originalHeight: viewport.height / renderScale,
+          scale: renderScale
+        }
       }));
       
       canvas.width = viewport.width;
@@ -112,7 +124,6 @@ const PDFCropper = () => {
       
     } catch (error) {
       console.error('Error rendering page:', error);
-      alert('Error rendering PDF page');
     } finally {
       setIsLoadingPage(false);
     }
@@ -128,13 +139,29 @@ const PDFCropper = () => {
 
   const getMousePosition = (e) => {
     const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    
+    // Get the actual displayed size of the canvas
+    const displayWidth = rect.width;
+    const displayHeight = rect.height;
+    
+    // Get the internal canvas size
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    // Calculate scale factors
+    const scaleX = canvasWidth / displayWidth;
+    const scaleY = canvasHeight / displayHeight;
+    
+    // Calculate mouse position relative to canvas
+    const clientX = e.clientX - rect.left;
+    const clientY = e.clientY - rect.top;
     
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY
+      x: clientX * scaleX,
+      y: clientY * scaleY
     };
   };
 
@@ -152,7 +179,7 @@ const PDFCropper = () => {
       { name: 'e', x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height / 2 }
     ];
     
-    const handleSize = 10;
+    const handleSize = 15; // Increased handle size for better interaction
     
     for (const handle of handles) {
       if (
@@ -172,7 +199,7 @@ const PDFCropper = () => {
     if (!cropArea) return false;
     
     return (
-      pos.x >= cropArea.x &&
+      pos.  x >= cropArea.x &&
       pos.x <= cropArea.x + cropArea.width &&
       pos.y >= cropArea.y &&
       pos.y <= cropArea.y + cropArea.height
@@ -184,19 +211,16 @@ const PDFCropper = () => {
     const handle = getResizeHandle(pos);
     
     if (handle) {
-      setIsResizing(true);
+      setMode('resize');
       setResizeHandle(handle);
       setDragStart(pos);
     } else if (isInsideCropArea(pos)) {
       // Move existing crop area
-      setIsDragging(true);
-      setDragStart({
-        x: pos.x - cropArea.x,
-        y: pos.y - cropArea.y
-      });
+      setMode('move');
+      setDragStart({ x: pos.x - cropArea.x, y: pos.y - cropArea.y });
     } else {
       // Create new crop area
-      setIsDragging(true);
+      setMode('create');
       setDragStart(pos);
       setCropArea({ x: pos.x, y: pos.y, width: 0, height: 0 });
     }
@@ -222,7 +246,8 @@ const PDFCropper = () => {
       }
     }
     
-    if (isResizing && cropArea) {
+
+    if (mode === 'resize' && cropArea) {        // RESIZE ---------
       const newCropArea = { ...cropArea };
       
       switch (resizeHandle) {
@@ -269,42 +294,40 @@ const PDFCropper = () => {
       newCropArea.y = Math.max(0, Math.min(newCropArea.y, canvas.height - newCropArea.height));
       
       setCropArea(newCropArea);
-    } else if (isDragging) {
-      if (cropArea && isInsideCropArea({ x: pos.x + dragStart.x, y: pos.y + dragStart.y })) {
-        // Move existing crop area
-        const newX = Math.max(0, Math.min(pos.x - dragStart.x, canvas.width - cropArea.width));
-        const newY = Math.max(0, Math.min(pos.y - dragStart.y, canvas.height - cropArea.height));
-        
-        setCropArea({
-          ...cropArea,
-          x: newX,
-          y: newY
-        });
-      } else {
-        // Create new crop area
-        const newCropArea = {
-          x: Math.min(dragStart.x, pos.x),
-          y: Math.min(dragStart.y, pos.y),
-          width: Math.abs(pos.x - dragStart.x),
-          height: Math.abs(pos.y - dragStart.y)
-        };
-        
-        // Ensure bounds
-        newCropArea.x = Math.max(0, newCropArea.x);
-        newCropArea.y = Math.max(0, newCropArea.y);
-        newCropArea.width = Math.min(newCropArea.width, canvas.width - newCropArea.x);
-        newCropArea.height = Math.min(newCropArea.height, canvas.height - newCropArea.y);
-        
-        setCropArea(newCropArea);
-      }
+
+    } else if (mode === 'move' && cropArea) {   // MOVE -----------
+      const newX = Math.max(0, Math.min(pos.x - dragStart.x, canvas.width  - cropArea.width));
+      const newY = Math.max(0, Math.min(pos.y - dragStart.y, canvas.height - cropArea.height));
+      setCropArea(prev => ({ ...prev, x: newX, y: newY }));
+
+    } else if (mode === 'create') {             // CREATE ---------
+      // Create new crop area
+      const newCropArea = {
+        x: Math.min(dragStart.x, pos.x),
+        y: Math.min(dragStart.y, pos.y),
+        width: Math.abs(pos.x - dragStart.x),
+        height: Math.abs(pos.y - dragStart.y)
+      };
+      
+      // Ensure bounds
+      newCropArea.x = Math.max(0, newCropArea.x);
+      newCropArea.y = Math.max(0, newCropArea.y);
+      newCropArea.width = Math.min(newCropArea.width, canvas.width - newCropArea.x);
+      newCropArea.height = Math.min(newCropArea.height, canvas.height - newCropArea.y);
+      
+      setCropArea(newCropArea);
     }
   };
 
   const handleCanvasMouseUp = () => {
-    setIsDragging(false);
-    setIsResizing(false);
+    // setIsDragging(false);
+    // setIsResizing(false);
+    // setResizeHandle(null);
+    setMode(null);
     setResizeHandle(null);
-    canvasRef.current.style.cursor = 'crosshair';
+    if (canvasRef.current) {
+      canvasRef.current.style.cursor = 'crosshair';
+    }
   };
 
   // Separate function to render only the crop overlay without reloading the page
@@ -349,15 +372,15 @@ const PDFCropper = () => {
       
       ctx.fillStyle = '#3b82f6';
       handles.forEach(handle => {
-        ctx.fillRect(handle.x - 5, handle.y - 5, 10, 10);
+        ctx.fillRect(handle.x - 6, handle.y - 6, 12, 12);
       });
       
       // Add white border to handles for better visibility
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.setLineDash([]);
       handles.forEach(handle => {
-        ctx.strokeRect(handle.x - 5, handle.y - 5, 10, 10);
+        ctx.strokeRect(handle.x - 6, handle.y - 6, 12, 12);
       });
     }
   }, [cropArea, originalImageData]);
@@ -367,54 +390,7 @@ const PDFCropper = () => {
     renderCropOverlay();
   }, [renderCropOverlay]);
 
-  // const handleCrop = async () => {
-  //   if (!cropArea || !pdfFile) {
-  //     alert('Please select a crop area first');
-  //     return;
-  //   }
-
-  //   setIsProcessing(true);
-    
-  //   try {
-  //     // Parse page selection
-  //     let pagesToCrop = [];
-      
-  //     if (pageSelection === 'current') {
-  //       pagesToCrop = [currentPage + 1];
-  //     } else if (pageSelection === 'all') {
-  //       pagesToCrop = Array.from({ length: totalPages }, (_, i) => i + 1);
-  //     } else if (pageSelection === 'custom') {
-  //       const pages = customPages.split(',').map(p => {
-  //         const trimmed = p.trim();
-  //         if (trimmed.includes('-')) {
-  //           const [start, end] = trimmed.split('-').map(n => parseInt(n));
-  //           return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  //         } else {
-  //           return parseInt(trimmed);
-  //         }
-  //       }).flat().filter(p => p >= 1 && p <= totalPages);
-  //       pagesToCrop = pages;
-  //     }
-
-  //     if (pagesToCrop.length === 0) {
-  //       alert('No valid pages selected');
-  //       return;
-  //     }
-
-  //     // Simulate cropping process
-  //     await new Promise(resolve => setTimeout(resolve, 2000));
-      
-  //     alert(`Successfully cropped ${pagesToCrop.length} pages! In a real implementation, the cropped PDF would be downloaded.`);
-      
-  //   } catch (error) {
-  //     console.error('Error cropping PDF:', error);
-  //     alert('Error cropping PDF');
-  //   } finally {
-  //     setIsProcessing(false);
-  //   }
-  // };
-
-    const downloadPDF = (pdfBytes, filename) => {
+  const downloadPDF = (pdfBytes, filename) => {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -472,41 +448,56 @@ const PDFCropper = () => {
       if (!currentViewport) {
         throw new Error('Viewport information not available');
       }
-      
-      // Calculate the crop area in PDF coordinates
-      // Canvas coordinates need to be converted to PDF coordinates
-      const scaleX = currentViewport.width / canvasRef.current.width;
-      const scaleY = currentViewport.height / canvasRef.current.height;
-      
-      const cropBox = {
-        x: cropArea.x * scaleX,
-        y: (canvasRef.current.height - cropArea.y - cropArea.height) * scaleY, // Flip Y coordinate
-        width: cropArea.width * scaleX,
-        height: cropArea.height * scaleY
-      };
 
-      // Process each selected page
+      /* ---  Crop the selected pages  --- */
       for (const pageNum of pagesToCrop) {
         const [originalPage] = await croppedPdf.copyPages(originalPdf, [pageNum - 1]);
-        
-        // Set the crop box (media box) for the page
-        originalPage.setCropBox(
-          cropBox.x,
-          cropBox.y,
-          cropBox.x + cropBox.width,
-          cropBox.y + cropBox.height
-        );
-        
-        // Also set media box to match crop box for better compatibility
-        originalPage.setMediaBox(
-          cropBox.x,
-          cropBox.y,
-          cropBox.x + cropBox.width,
-          cropBox.y + cropBox.height
-        );
-        
+        const vp = pageViewports[pageNum];           // saved when we rendered
+        if (!vp) continue;
+
+        const { width: pageW, height: pageH } = originalPage.getSize();
+        const rot = (originalPage.getRotation().angle ?? 0) % 360;
+
+        // Real pixel-to-point factors for this page
+        const sx = vp.width  / pageW;
+        const sy = vp.height / pageH;
+
+        // Canvas rectangle (top-left & bottom-right)
+        const dx1 = cropArea.x;
+        const dy1 = cropArea.y;
+        const dx2 = cropArea.x + cropArea.width;
+        const dy2 = cropArea.y + cropArea.height;
+
+        // Convert *one* canvas point → PDF point, respecting rotation
+        const toPdf = (dx, dy) => {
+          switch (rot) {
+            case 0:   return [               dx / sx,  pageH - dy / sy];
+            case 90:  return [               dy / sy,           dx / sx];
+            case 180: return [  pageW - dx / sx,           dy / sy];
+            case 270: return [  pageH - dy / sy,  pageW - dx / sx];
+            default:  return [               dx / sx,  pageH - dy / sy];
+          }
+        };
+
+        const [x1, y1] = toPdf(dx1, dy1);
+        const [x2, y2] = toPdf(dx2, dy2);
+
+        const left   = Math.max(0,         Math.min(x1, x2));
+        const right  = Math.min(pageW,     Math.max(x1, x2));
+        const bottom = Math.max(0,         Math.min(y1, y2));
+        const top    = Math.min(pageH,     Math.max(y1, y2));
+
+        if (right - left < 2 || top - bottom < 2) continue; // skip 1-pt slivers
+
+        const widthPts  = right - left;
+        const heightPts = top   - bottom;
+
+        originalPage.setCropBox(left, bottom, widthPts, heightPts);
+        originalPage.setMediaBox(left, bottom, widthPts, heightPts);
+
         croppedPdf.addPage(originalPage);
       }
+
       
       // Generate the PDF bytes
       const croppedPdfBytes = await croppedPdf.save();
@@ -518,7 +509,7 @@ const PDFCropper = () => {
       // Download the cropped PDF
       downloadPDF(croppedPdfBytes, filename);
       
-      alert(`Successfully cropped ${pagesToCrop.length} pages and downloaded as ${filename}!`);
+      // alert(`Successfully cropped ${pagesToCrop.length} pages and downloaded as ${filename}!`);
       
     } catch (error) {
       console.error('Error cropping PDF:', error);
@@ -534,9 +525,7 @@ const PDFCropper = () => {
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-blue-600 rounded-xl shadow-lg">
-              <Scissors className="w-8 h-8 text-white" />
-            </div>
+            <img src={Logo} alt="Logo" width={80} height={80} />
             <h1 className="text-4xl font-bold text-gray-800">PDF Cropper</h1>
           </div>
           <p className="text-gray-600 text-lg">Upload, preview, and crop your PDF pages with precision</p>
@@ -622,21 +611,22 @@ const PDFCropper = () => {
                     onMouseMove={handleCanvasMouseMove}
                     onMouseUp={handleCanvasMouseUp}
                     onMouseLeave={handleCanvasMouseUp}
+                    style={{ userSelect: 'none' }}
                   />
                   
-                  {isDragging && (
+                  {mode === 'move' && (
                     <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-medium z-10">
-                      {isInsideCropArea(dragStart) ? 'Moving crop area' : 'Drag to select crop area'}
+                      {cropArea && cropArea.width > 0 ? 'Moving crop area' : 'Drag to select crop area'}
                     </div>
                   )}
                   
-                  {isResizing && (
+                  {mode === 'resize'  && (
                     <div className="absolute top-4 left-4 bg-purple-600 text-white px-3 py-1 rounded-lg text-sm font-medium z-10">
                       Resizing crop area
                     </div>
                   )}
                   
-                  {cropArea && cropArea.width > 5 && cropArea.height > 5 && !isDragging && !isResizing && (
+                  {cropArea && cropArea.width > 5 && cropArea.height > 5 && mode !== 'move' && mode !== 'resize' && (
                     <div className="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium z-10">
                       Selected: {Math.round(cropArea.width)} × {Math.round(cropArea.height)}
                     </div>
@@ -717,87 +707,88 @@ const PDFCropper = () => {
               </div>
 
               {/* Crop Info */}
-              {cropArea && (
-                <div className="bg-white rounded-2xl shadow-xl p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Crop Area Details</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Position:</span>
-                      <span>{Math.round(cropArea.x)}, {Math.round(cropArea.y)}</span>
+                {cropArea && (
+                    <div className="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Crop Area Details</h3>
+                    <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex justify-between">
+                        <span>Position:</span>
+                        <span>{Math.round(cropArea.x)}, {Math.round(cropArea.y)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                        <span>Size:</span>
+                        <span>{Math.round(cropArea.width)} × {Math.round(cropArea.height)}</span>
+                        </div>
+                        <div className="text-xs text-blue-600 mt-3 p-2 bg-blue-50 rounded">
+                        💡 Tip: Click and drag corners/edges to resize, or click inside to move
+                        </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Size:</span>
-                      <span>{Math.round(cropArea.width)} × {Math.round(cropArea.height)}</span>
                     </div>
-                    <div className="text-xs text-blue-600 mt-3 p-2 bg-blue-50 rounded">
-                      💡 Tip: Click and drag corners/edges to resize, or click inside to move
-                    </div>
-                  </div>
+                )}
+    
+                {/* Action Buttons */}
+                <div className="space-y-4">
+                    <button
+                    onClick={handleCrop}
+                    disabled={!cropArea || isProcessing}
+                    className="w-full px-6 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
+                    >
+                    {isProcessing ? (
+                        <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Processing...
+                        </>
+                    ) : (
+                        <>
+                        <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        Crop & Download PDF
+                        </>
+                    )}
+                    </button>
+                    
+                    <button
+                    onClick={() => {
+                        setPdfFile(null);
+                        setPdfDocument(null);
+                        // setPdfPages([]);
+                        setCropArea(null);
+                        setCurrentPage(0);
+                        setTotalPages(0);
+                        setPageSelection('current');
+                        setCustomPages('');
+                        setOriginalImageData(null);
+                    }}
+                    className="w-full px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+                    >
+                    Upload New PDF
+                    </button>
                 </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="space-y-4">
-                <button
-                  onClick={handleCrop}
-                  disabled={!cropArea || isProcessing}
-                  className="w-full px-6 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                      Crop & Download PDF
-                    </>
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => {
-                    setPdfFile(null);
-                    setPdfDocument(null);
-                    setPdfPages([]);
-                    setCropArea(null);
-                    setCurrentPage(0);
-                    setTotalPages(0);
-                    setPageSelection('current');
-                    setCustomPages('');
-                    setOriginalImageData(null);
-                  }}
-                  className="w-full px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Upload New PDF
-                </button>
-              </div>
+                </div>
             </div>
-          </div>
-        )}
-      </div>
-      
-      <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
+            )}
+        </div>
         
-        @keyframes slide-up {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-        
-        .animate-slide-up {
-          animation: slide-up 0.8s ease-out;
-        }
-      `}</style>
-    </div>
-  );
-};
+        <style jsx>{`
+            @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @keyframes slide-up {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .animate-fade-in {
+            animation: fade-in 0.6s ease-out;
+            }
+            
+            .animate-slide-up {
+            animation: slide-up 0.8s ease-out;
+            }
+        `}</style>
+        </div>
+    );
+    };
+    
 export default PDFCropper;
