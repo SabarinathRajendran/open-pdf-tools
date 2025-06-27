@@ -1,0 +1,21 @@
+<!-- 160 × 160 SVG — PDF sheet + crop frame -->
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <!-- PDF sheet with folded corner -->
+  <path d="M30 20 h70 l30 30 v90 a10 10 0 0 1 -10 10 h-90 a10 10 0 0 1 -10 -10 v-110 a10 10 0 0 1 10 -10 z"
+        fill="#4F46E5"/>
+  <!-- Fold area -->
+  <polygon points="100,20 130,50 100,50" fill="#4F46E5"/>
+
+  <!-- Cropping L‑shape on top of sheet -->
+  <line x1="40" y1="50" x2="40" y2="120" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  <line x1="40" y1="50" x2="110" y2="50" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Crop selection box -->
+  <rect x="60" y="70" width="70" height="70"
+        fill="none" stroke="#FFFFFF" stroke-width="3"/>
+  <rect x="70" y="80" width="50" height="50"
+        fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="5 5"/>
+
+  <!-- Handle dot -->
+  <circle cx="120" cy="130" r="5" fill="#FFFFFF"/>
+</svg>
