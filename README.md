@@ -1,4 +1,4 @@
-# PDF Cropper ✂️📄
+# PDF Cropper ✂️📄 (Built with Just AI)
 
 Welcome to **PDF Cropper**, your new best friend for slicing and dicing PDFs without breaking a sweat! Built with **Vite**, **Tailwind CSS**, and some snazzy **Lucide React** icons, this React app lets you crop PDF pages like a pro — or at least like someone who really loves neat corners.
 
