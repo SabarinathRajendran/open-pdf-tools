@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Crop, Download, FileText, Scissors, ChevronLeft, ChevronRight } from 'lucide-react';
 import Logo from './assets/logo.svg';
@@ -8,8 +9,6 @@ const PDFCropper = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [cropArea, setCropArea] = useState(null);
-  const [isDragging] = useState(false);
-  const [isResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [pageSelection, setPageSelection] = useState('current');
@@ -66,7 +65,7 @@ const PDFCropper = () => {
       const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
 
       for (let i = 1; i <= pdf.numPages; i++) {
-        loadPage(pdf, i);
+        await loadPage(pdf, i);
       }
 
       setPdfDocument(pdf);
@@ -74,8 +73,10 @@ const PDFCropper = () => {
       setCurrentPage(0);
       setCropArea(null);
       
-      // Load first page
-      await loadPage(pdf, 1);
+      // Wait until canvas is available and fully laid out
+      setTimeout(() => {
+        loadPage(pdf, 1);
+      }, 100); // 100–200ms is usually enough
       
     } catch (error) {
       console.error('Error loading PDF:', error);
@@ -179,7 +180,7 @@ const PDFCropper = () => {
       { name: 'e', x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height / 2 }
     ];
     
-    const handleSize = 15; // Increased handle size for better interaction
+    const handleSize = 20; // Increased handle size for better interaction
     
     for (const handle of handles) {
       if (
@@ -372,7 +373,7 @@ const PDFCropper = () => {
       
       ctx.fillStyle = '#3b82f6';
       handles.forEach(handle => {
-        ctx.fillRect(handle.x - 6, handle.y - 6, 12, 12);
+        ctx.fillRect(handle.x - 10, handle.y - 10, 20, 20);
       });
       
       // Add white border to handles for better visibility
@@ -380,7 +381,7 @@ const PDFCropper = () => {
       ctx.lineWidth = 2;
       ctx.setLineDash([]);
       handles.forEach(handle => {
-        ctx.strokeRect(handle.x - 6, handle.y - 6, 12, 12);
+        ctx.fillRect(handle.x - 10, handle.y - 10, 20, 20);
       });
     }
   }, [cropArea, originalImageData]);
