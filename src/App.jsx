@@ -231,7 +231,7 @@ const PDFCropper = () => {
     const canvas = canvasRef.current;
     
     // Update cursor based on position
-    if (!isDragging && !isResizing) {
+    if (mode !== 'move' && mode !== 'resize') {
       const handle = getResizeHandle(pos);
       if (handle) {
         const cursors = {
@@ -519,6 +519,23 @@ const PDFCropper = () => {
     }
   };
 
+
+  const handlePointerDown = (e) => {
+    // enable capture so moves outside still get events:
+    e.currentTarget.setPointerCapture(e.pointerId);
+    handleCanvasMouseDown(e);
+  };
+
+  const handlePointerMove = (e) => {
+    handleCanvasMouseMove(e);
+  };
+
+  const handlePointerUp = (e) => {
+    // release capture
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    handleCanvasMouseUp();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -606,12 +623,13 @@ const PDFCropper = () => {
                   
                   <canvas
                     ref={canvasRef}
-                    className="max-w-full h-auto cursor-crosshair block mx-auto"
-                    onMouseDown={handleCanvasMouseDown}
-                    onMouseMove={handleCanvasMouseMove}
-                    onMouseUp={handleCanvasMouseUp}
-                    onMouseLeave={handleCanvasMouseUp}
-                    style={{ userSelect: 'none' }}
+                    className="max-w-full h-auto cursor-crosshair block mx-auto"  
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerLeave={handlePointerUp}
+                    /* Prevent touch scrolling/pinch-zoom on the canvas itself */
+                    style={{ touchAction: 'none', userSelect: 'none' }}
                   />
                   
                   {mode === 'move' && (
