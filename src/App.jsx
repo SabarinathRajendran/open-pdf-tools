@@ -73,7 +73,6 @@ const PDFCropper = () => {
       setCurrentPage(0);
       setCropArea(null);
       
-      // Wait until canvas is available and fully laid out
       setTimeout(() => {
         loadPage(pdf, 1);
       }, 100); // 100–200ms is usually enough
@@ -180,7 +179,7 @@ const PDFCropper = () => {
       { name: 'e', x: cropArea.x + cropArea.width, y: cropArea.y + cropArea.height / 2 }
     ];
     
-    const handleSize = 20; // Increased handle size for better interaction
+    const handleSize = 30; // Increased handle size for better interaction
     
     for (const handle of handles) {
       if (
@@ -373,7 +372,7 @@ const PDFCropper = () => {
       
       ctx.fillStyle = '#3b82f6';
       handles.forEach(handle => {
-        ctx.fillRect(handle.x - 10, handle.y - 10, 20, 20);
+        ctx.fillRect(handle.x - 6, handle.y - 6, 10, 10);
       });
       
       // Add white border to handles for better visibility
@@ -381,7 +380,7 @@ const PDFCropper = () => {
       ctx.lineWidth = 2;
       ctx.setLineDash([]);
       handles.forEach(handle => {
-        ctx.fillRect(handle.x - 10, handle.y - 10, 20, 20);
+        ctx.fillRect(handle.x - 6, handle.y - 6, 10, 10);
       });
     }
   }, [cropArea, originalImageData]);
