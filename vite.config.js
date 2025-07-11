@@ -5,6 +5,6 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   //Add this if custom domain is not active
-  base: "/pdf-cropper",
+  // base: "/pdf-cropper",
   plugins: [react(), tailwindcss()],
 })
