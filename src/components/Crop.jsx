@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Crop, Download, FileText, Scissors, ChevronLeft, ChevronRight } from 'lucide-react';
-import Logo from './assets/logo.svg';
+import Logo from '../assets/logo.svg';
 
 const PDFCropper = () => {
   const [pdfFile, setPdfFile] = useState(null);
