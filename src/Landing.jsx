@@ -1,9 +1,9 @@
-import React from 'react';
-import { Crop, RotateCw, Merge, Split, Download } from 'lucide-react';
+import { Crop, RotateCw, Merge, Split } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import { PATH } from './routes/path';
 
 const tools = [
-  { name: 'PDF Cropper', desc: 'Crop PDF pages precisely and quickly, all in your browser.', icon: <Crop />, path: '/crop', live: true },
+  { name: 'PDF Cropper', desc: 'Crop PDF pages precisely and quickly, all in your browser.', icon: <Crop />, path: PATH.crop, live: true },
   { name: 'PDF Rotator', desc: 'Rotate pages clockwise or counterclockwise with ease.', icon: <RotateCw />, path: '/pdf-rotator', live: false },
   { name: 'Merge PDFs', desc: 'Combine multiple PDF documents into one.', icon: <Merge />, path: '/merge-pdf', live: false },
   { name: 'Split PDF', desc: 'Break large PDFs into smaller, more manageable files.', icon: <Split />, path: '/split-pdf', live: false },
@@ -48,7 +48,7 @@ export default function LandingPage() {
             Your one-stop open-source toolkit to crop, rotate, merge, and split PDFs — completely offline and secure.
           </p>
           <a
-            href="/crop"
+            href="#crop"
             className="inline-block px-6 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition-all duration-300"
           >
             🚀 Launch PDF Cropper
@@ -103,7 +103,7 @@ export default function LandingPage() {
                 text: 'Pick and use only what you need — crop, rotate, split, or merge.',
               },
               {
-                title: '🌍 Free & Open‑Source',
+                title: '🌍 Free & Open-Source',
                 text: 'No subscriptions, no ads. Forever free and built by the community.',
               },
             ].map((benefit, i) => (

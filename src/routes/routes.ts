@@ -1,18 +1,18 @@
 import {
-  createBrowserRouter,
-  RouterProvider,
+  createHashRouter,
 } from "react-router";
 
 import LandingPage from "../Landing";
 import PDFCropper from "../components/Crop";
+import { PATH } from "./path";
 
-let router = createBrowserRouter([
+let router = createHashRouter([
   {
-    path: "/",
+    path: "",
     Component: LandingPage,
   },
   {
-    path: "/crop",
+    path: PATH.crop,
     Component: PDFCropper
   }
 ]);
