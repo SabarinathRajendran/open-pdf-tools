@@ -30,7 +30,7 @@ export default function LandingPage() {
       <header className="py-6 bg-white shadow sticky top-0 z-10 transition-all duration-300">
         <nav className="container mx-auto flex justify-between items-center px-4">
           <h1 className="text-2xl font-bold text-blue-600 tracking-tight">OpenPDF Tools</h1>
-          <ul className="flex space-x-4 text-gray-700 font-medium">
+          <ul className="hidden md:flex space-x-4 text-gray-700 font-medium">
             <li><a href="#tools" className="hover:text-blue-500 transition-colors">Tools</a></li>
             <li><a href="#benefits" className="hover:text-blue-500 transition-colors">Benefits</a></li>
             <li><a href="#platform" className="hover:text-blue-500 transition-colors">Platform</a></li>

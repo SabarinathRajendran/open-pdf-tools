@@ -1,22 +1,39 @@
-# PDF Cropper ✂️📄 (Built with Just AI)
+# OpenPDF Tools 🛠️📄 (Local, Private & Snappy)
 
-Welcome to **PDF Cropper**, your new best friend for slicing and dicing PDFs without breaking a sweat! Built with **Vite**, **Tailwind CSS**, and some snazzy **Lucide React** icons, this React app lets you crop PDF pages like a pro — or at least like someone who really loves neat corners.
+Welcome to **OpenPDF Tools** – your one-stop, open-source playground for slicing, rotating, merging, and splitting PDFs. No uploads. No servers. Just clean, local PDF magic, straight from your browser.
+
+🚀 Built with **Vite**, **React**, **Tailwind CSS**, and sprinkled with shiny **Lucide React** icons — this project is as sleek under the hood as it is on-screen.
+
+---
+
+## 🌐 Live Demo
+
+Explore the landing page and tools here:  
+👉 **[https://openpdftools.sabarinath.dev/](https://openpdftools.sabarinath.dev/)**
+
+Jump straight into cropping:  
+✂️ **[https://openpdftools.sabarinath.dev/#/crop](https://openpdftools.sabarinath.dev/#crop)**
+
+---
+
+## 🧰 Tools Available
+
+- ✂️ **PDF Cropper** – Crop one page, selected pages, or the whole document.
+- 🔄 **PDF Rotator** – Coming soon!
+- 🔗 **Merge PDFs** – Coming soon!
+- ✂️ **Split PDFs** – Coming soon!
+
+All tools run **100% in-browser**. No file uploads. Your PDFs stay with you.
 
 ---
 
 ## Features That’ll Make You Smile 😄
 
-- Drag, drop, and upload your PDFs faster than you can say “Where’s my crop tool?”  
-- Crop one page, some pages, or the whole darn book — you’re the boss!  
-- Powered by **Vite** for lightning-fast starts, so no waiting around sipping coffee ☕  
-- Styled with **Tailwind CSS** because looking good is half the job done  
-- All done client-side — your PDFs stay private (and secret!) on your device
-
----
-
-## See It In Action
-
-*No demo yet? Well, hold tight. We’re cooking something tasty!*
+- Drag and drop PDFs like it’s 1999  
+- Crop one page, selected pages, or the whole book — your call  
+- Built on **Vite** for lightning-fast performance ⚡  
+- Styled with **Tailwind CSS** for sleek, responsive UI  
+- Works completely offline — your PDFs stay safe and private
 
 ---
 
@@ -24,61 +41,61 @@ Welcome to **PDF Cropper**, your new best friend for slicing and dicing PDFs wit
 
 ### What You’ll Need
 
-- Node.js (latest is greatest - built with v22.17.0)
-- npm or yarn — your pick of the package manager flavor  
+- Node.js (we used v22.17.0 — but anything recent should work)
+- npm or yarn — pick your favorite package manager  
 
 ### How To Get This Party Started
 
-1. Clone it like it’s hot:  
-    ```
-    git clone https://github.com/SabarinathRajendran/pdf-cropper.git
-    cd pdf-cropper
+1. Clone the repo:  
+    ```bash
+    git clone https://github.com/SabarinathRajendran/open-pdf-tools.git
+    cd open-pdf-tools
     ```
 
 2. Install all the goodies:  
-    ```
+    ```bash
     npm install
     # or
     yarn install
     ```
 
 3. Fire it up:  
-    ```
+    ```bash
     npm run dev
     # or
     yarn dev
     ```
 
-4. Open your browser and head to [http://localhost:5173](http://localhost:5173) — the magic happens here.
+4. Visit [http://localhost:5173](http://localhost:5173) and behold your tool kingdom.
 
 ---
 
-## How To Use (No Rocket Science Here)
+## 🛠 How To Use the PDF Cropper
 
-1. Upload your PDF like a boss.  
-2. Check out your pages with smooth scrolling and sweet transitions.  
-3. Use the crop handles to define the area to keep.
-4. Choose to apply the crop to a single page, specific pages (comma separated), or all pages.  
-5. Export and download your cropped PDF with pride.
+1. Upload your PDF like a boss  
+2. View pages with smooth, scrollable previews  
+3. Use crop handles to define the area to keep  
+4. Apply the crop to a specific page, multiple pages (comma-separated), or all pages  
+5. Export and download your cleanly cropped PDF  
 
 ---
 
 ## What’s Under The Hood? 🐎
 
-- PDF wizardry courtesy of [pdf.js](https://mozilla.github.io/pdf.js/) — it’s like magic, but real.  
-- React + SVG overlays keep your cropping crisp and clean.  
-- Crop once, apply everywhere — because who likes doing the same thing twice?  
-- All on your machine, no mysterious servers involved. Your secrets are safe with us.
+- PDF wizardry powered by [pdf.js](https://mozilla.github.io/pdf.js/)  
+- React + SVG overlays for precise, buttery cropping  
+- Crop logic with multi-page support  
+- No servers, no nonsense — everything runs in your browser
 
 ---
 
 ## Tech Stack — The Secret Sauce 🌶️
 
-- [Vite](https://vitejs.dev/) — blazingly fast dev tool (seriously, blink and it’s ready)  
-- [React](https://reactjs.org/) — the UI hero  
-- [Tailwind CSS](https://tailwindcss.com/) — stylish without the drama  
-- [Lucide React](https://lucide.dev/docs/react/) — shiny icons to click on  
-- [pdf.js](https://mozilla.github.io/pdf.js/) — PDF whisperer  
+- [Vite](https://vitejs.dev/) — snappy dev experience  
+- [React](https://reactjs.org/) — component magic  
+- [Tailwind CSS](https://tailwindcss.com/) — beautiful UIs, no hassle  
+- [Lucide React](https://lucide.dev/docs/react/) — modern icons  
+- [pdf.js](https://mozilla.github.io/pdf.js/) — PDF parsing like a wizard  
 
 ---
 
@@ -86,39 +103,30 @@ Welcome to **PDF Cropper**, your new best friend for slicing and dicing PDFs wit
 
 Got ideas? Found a bug? Wanna add a funky new feature? Here’s how:
 
-1. Fork the repo and make it yours  
-2. Create a branch with a cool name  
+1. Fork the repo  
+2. Create a new branch:  
+    ```bash
+    git checkout -b feature/my-awesome-update
     ```
-    git checkout -b feature/amazing-new-thing
-    ```
+3. Make your magic happen 💻  
+4. Push and open a Pull Request  
+5. Pat yourself on the back 🥳
 
-3. Commit your awesomeness  
-    ```
-    git commit -m "Add amazing new thing"
-    ```
-
-4. Push it  
-    ```
-    git push origin feature/amazing-new-thing
-    ```
-
-5. Open a Pull Request and bask in the glory of community contribution  
-
-Remember, nice code and tests get extra cookies 🍪
+Bonus points for clean code and thoughtful commits. Cookies for tests 🍪
 
 ---
 
-## License (Because Sharing is Caring)
+## License
 
-This little gem is licensed under the **MIT License** — so go nuts, just don’t sue us!
+Licensed under the **MIT License** — use it, fork it, remix it.
 
 ---
 
 ## Talk To Me! 📬
 
-Questions, jokes, or just wanna say hi? Open an issue or ping me on GitHub.  
-I don’t bite (much).
+Open an issue if you have questions, suggestions, or jokes.  
+I'm always happy to help (and rarely bite).
 
 ---
 
-Thanks for checking out **PDF Cropper** — now go forth and crop like a champ! ✂️😎
+Thanks for checking out **OpenPDF Tools** — now go crop like a pro, merge like a master, and split like a ninja. ✂️🧙‍♂️📄
